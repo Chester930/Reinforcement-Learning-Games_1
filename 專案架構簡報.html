@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>強化學習遊戲平台 - 專案架構與技術說明</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transform: translateX(100%);
+            transition: transform 0.5s ease-in-out;
+            opacity: 0;
+        }
+
+        .slide.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .slide-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-subtitle {
+            font-size: 1.5rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .content {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .tech-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .tech-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .tech-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tech-list li:last-child {
+            border-bottom: none;
+        }
+
+        .version {
+            background: #667eea;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .architecture-diagram {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+
+        .diagram {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .diagram-box {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 200px;
+            margin: 0.5rem;
+        }
+
+        .diagram-arrow {
+            font-size: 2rem;
+            color: #667eea;
+            margin: 0 1rem;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .highlight {
+            color: #fbb6ce;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-item {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comparison-table tr:hover {
+            background: #f7fafc;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px;
+            }
+            
+            .slide-title {
+                font-size: 2.5rem;
+            }
+            
+            .diagram {
+                flex-direction: column;
+            }
+            
+            .diagram-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- 幻燈片計數器 -->
+        <div class="slide-counter">
+            <span id="current-slide">1</span> / <span id="total-slides">12</span>
+        </div>
+
+        <!-- 幻燈片 1: 標題頁 -->
+        <div class="slide active" data-slide="1">
+            <div class="content">
+                <h1 class="slide-title">🏗️ 強化學習遊戲平台</h1>
+                <p class="slide-subtitle">專案架構與技術說明簡報</p>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <div class="feature-icon">🎯</div>
+                        <h3>教育導向</h3>
+                        <p>專為學習強化學習而設計</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <h3>技術現代化</h3>
+                        <p>採用最新的 Web 技術棧</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🔧</div>
+                        <h3>架構清晰</h3>
+                        <p>模組化設計，易於維護</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 2: 專案概述 -->
+        <div class="slide" data-slide="2">
+            <div class="content">
+                <h1 class="slide-title">🎯 專案概述</h1>
+                <div class="architecture-diagram">
+                    <h2>專案定位</h2>
+                    <p style="font-size: 1.2rem; margin: 1rem 0; color: #666;">
+                        教育導向的強化學習教學平台，提供視覺化的強化學習環境
+                    </p>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <h3>🎮 Grid World 環境</h3>
+                            <p>設計和測試強化學習環境</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>🧠 演算法比較</h3>
+                            <p>Q-Learning 與 SARSA 實作</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>📊 視覺化展示</h3>
+                            <p>學習過程和結果分析</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>⚙️ 參數調優</h3>
+                            <p>實驗不同參數組合</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 3: 整體架構 -->
+        <div class="slide" data-slide="3">
+            <div class="content">
+                <h1 class="slide-title">🏗️ 整體架構</h1>
+                <div class="architecture-diagram">
+                    <h2>前後端分離架構</h2>
+                    <div class="diagram">
+                        <div class="diagram-box">
+                            <h3>React 前端</h3>
+                            <p>TypeScript</p>
+                        </div>
+                        <div class="diagram-arrow">⇄</div>
+                        <div class="diagram-box">
+                            <h3>FastAPI 後端</h3>
+                            <p>Python</p>
+                        </div>
+                    </div>
+                    <div class="diagram">
+                        <div class="diagram-box">
+                            <h3>Material-UI</h3>
+                            <p>視覺化組件</p>
+                        </div>
+                        <div class="diagram-arrow">⇄</div>
+                        <div class="diagram-box">
+                            <h3>演算法引擎</h3>
+                            <p>Q-Learning</p>
+                        </div>
+                    </div>
+                    <div class="diagram">
+                        <div class="diagram-box">
+                            <h3>Chart.js</h3>
+                            <p>圖表展示</p>
+                        </div>
+                        <div class="diagram-arrow">⇄</div>
+                        <div class="diagram-box">
+                            <h3>資料儲存</h3>
+                            <p>JSON/CSV</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 4: 技術棧 -->
+        <div class="slide" data-slide="4">
+            <div class="content">
+                <h1 class="slide-title">🔧 技術棧</h1>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3>🐍 後端技術</h3>
+                        <ul class="tech-list">
+                            <li>Python <span class="version">3.8+</span></li>
+                            <li>FastAPI <span class="version">0.104.1</span></li>
+                            <li>Uvicorn <span class="version">0.24.0</span></li>
+                            <li>NumPy <span class="version">2.3.1</span></li>
+                            <li>Pandas <span class="version">2.3.1</span></li>
+                            <li>Matplotlib <span class="version">3.8.2</span></li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h3>⚛️ 前端技術</h3>
+                        <ul class="tech-list">
+                            <li>React <span class="version">19.1.0</span></li>
+                            <li>TypeScript <span class="version">4.9.5</span></li>
+                            <li>Material-UI <span class="version">7.2.0</span></li>
+                            <li>Chart.js <span class="version">4.5.0</span></li>
+                            <li>Axios <span class="version">1.10.0</span></li>
+                            <li>React Router <span class="version">7.7.0</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 5: 專案結構 -->
+        <div class="slide" data-slide="5">
+            <div class="content">
+                <h1 class="slide-title">📁 專案結構</h1>
+                <div class="architecture-diagram">
+                    <div class="code-block">
+<span class="highlight">Reinforcement Learning Games/</span>
+├── 📄 main.py                    # FastAPI 主應用程式
+├── 📄 requirements.txt           # Python 依賴套件
+├── 📄 settings.json              # 系統設定檔
+│
+├── 🧠 演算法核心
+│   ├── 📄 q_learning.py          # Q-Learning 演算法實作
+│   ├── 📄 sarsa.py               # SARSA 演算法實作
+│   └── 📄 analyze.py             # 分析工具
+│
+├── 🌐 API 模組
+│   ├── 📄 train_api.py           # 訓練 API
+│   ├── 📄 analysis_api.py        # 分析 API
+│   ├── 📄 map_api.py             # 地圖管理 API
+│   ├── 📄 rules_api.py           # 規則管理 API
+│   └── 📄 settings_api.py        # 設定 API
+│
+├── 📁 資料目錄
+│   ├── 📁 maps/                  # 地圖檔案
+│   ├── 📁 rules/                 # 規則檔案
+│   └── 📁 jobs/                  # 訓練結果
+│
+├── ⚛️ 前端專案
+│   └── 📁 frontend/
+│       ├── 📄 package.json       # 前端依賴
+│       ├── 📁 src/
+│       │   ├── 📄 App.tsx        # 主應用元件
+│       │   ├── 📄 Layout.tsx     # 佈局元件
+│       │   └── 📁 pages/         # 頁面元件
+│       └── 📁 public/            # 靜態資源
+│
+└── 📚 文檔
+    ├── 📄 README.md              # 使用說明
+    ├── 📄 index.html             # 網頁說明書
+    └── 📄 專案企劃書.md          # 專案規劃</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 6: 後端架構 -->
+        <div class="slide" data-slide="6">
+            <div class="content">
+                <h1 class="slide-title">⚙️ 後端架構</h1>
+                <div class="architecture-diagram">
+                    <h2>架構設計原則</h2>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <h3>🔧 模組化設計</h3>
+                            <p>每個功能模組獨立，便於維護和擴展</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>🌐 RESTful API</h3>
+                            <p>標準化的 API 設計</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>⚡ 非阻塞處理</h3>
+                            <p>支援異步操作，提高效能</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>✅ 資料驗證</h3>
+                            <p>使用 Pydantic 確保資料完整性</p>
+                        </div>
+                    </div>
+                    <div class="code-block">
+<span class="highlight"># 模組化路由掛載</span>
+app.mount('/maps', map_app)
+app.mount('/train', train_app)
+app.mount('/analysis', analysis_app)
+app.mount('/settings', settings_app)
+app.mount('/rules', rules_app)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 7: 核心演算法 -->
+        <div class="slide" data-slide="7">
+            <div class="content">
+                <h1 class="slide-title">🎮 核心演算法</h1>
+                <div class="architecture-diagram">
+                    <h2>Q-Learning vs SARSA</h2>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>特性</th>
+                                <th>Q-Learning</th>
+                                <th>SARSA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>學習類型</strong></td>
+                                <td>離策略學習</td>
+                                <td>同策略學習</td>
+                            </tr>
+                            <tr>
+                                <td><strong>更新公式</strong></td>
+                                <td>Q(s,a) ← Q(s,a) + α[r + γ·max(Q(s',a')) - Q(s,a)]</td>
+                                <td>Q(s,a) ← Q(s,a) + α[r + γ·Q(s',a') - Q(s,a)]</td>
+                            </tr>
+                            <tr>
+                                <td><strong>探索策略</strong></td>
+                                <td>ε-greedy 策略</td>
+                                <td>ε-greedy 策略</td>
+                            </tr>
+                            <tr>
+                                <td><strong>適用場景</strong></td>
+                                <td>追求最優策略</td>
+                                <td>保守穩定的策略</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 8: API 設計 -->
+        <div class="slide" data-slide="8">
+            <div class="content">
+                <h1 class="slide-title">🌐 API 設計</h1>
+                <div class="architecture-diagram">
+                    <h2>主要 API 端點</h2>
+                    <div class="tech-grid">
+                        <div class="tech-card">
+                            <h3>🗺️ 地圖管理</h3>
+                            <ul class="tech-list">
+                                <li>GET /maps/maps</li>
+                                <li>POST /maps/maps</li>
+                                <li>GET /maps/maps/{id}</li>
+                                <li>DELETE /maps/maps/{id}</li>
+                            </ul>
+                        </div>
+                        <div class="tech-card">
+                            <h3>🚀 訓練控制</h3>
+                            <ul class="tech-list">
+                                <li>POST /train/train</li>
+                                <li>GET /train/{id}/status</li>
+                                <li>GET /train/{id}/result</li>
+                                <li>GET /train/jobs</li>
+                            </ul>
+                        </div>
+                        <div class="tech-card">
+                            <h3>📊 結果分析</h3>
+                            <ul class="tech-list">
+                                <li>GET /analysis/{id}</li>
+                                <li>GET /analysis/{id}/curve</li>
+                                <li>GET /analysis/{id}/heatmap</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 9: 資料管理 -->
+        <div class="slide" data-slide="9">
+            <div class="content">
+                <h1 class="slide-title">💾 資料管理</h1>
+                <div class="architecture-diagram">
+                    <h2>資料流程</h2>
+                    <div class="diagram">
+                        <div class="diagram-box">
+                            <h3>1. 用戶建立地圖</h3>
+                            <p>maps/{map_id}.json</p>
+                        </div>
+                        <div class="diagram-arrow">→</div>
+                        <div class="diagram-box">
+                            <h3>2. 啟動訓練</h3>
+                            <p>jobs/{job_id}/config.json</p>
+                        </div>
+                        <div class="diagram-arrow">→</div>
+                        <div class="diagram-box">
+                            <h3>3. 演算法執行</h3>
+                            <p>jobs/{job_id}/q_table.csv</p>
+                        </div>
+                    </div>
+                    <div class="diagram">
+                        <div class="diagram-box">
+                            <h3>4. 結果分析</h3>
+                            <p>jobs/{job_id}/analysis.md</p>
+                        </div>
+                        <div class="diagram-arrow">→</div>
+                        <div class="diagram-box">
+                            <h3>5. 前端展示</h3>
+                            <p>圖表與報告</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 10: 部署與運行 -->
+        <div class="slide" data-slide="10">
+            <div class="content">
+                <h1 class="slide-title">🚀 部署與運行</h1>
+                <div class="architecture-diagram">
+                    <h2>開發環境啟動</h2>
+                    <div class="tech-grid">
+                        <div class="tech-card">
+                            <h3>🐍 後端啟動</h3>
+                            <div class="code-block">
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000</div>
+                        </div>
+                        <div class="tech-card">
+                            <h3>⚛️ 前端啟動</h3>
+                            <div class="code-block">
+cd frontend
+npm install
+npm start</div>
+                        </div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <h3>🔒 資料安全</h3>
+                            <p>輸入驗證、檔案隔離、錯誤處理</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>📊 監控日誌</h3>
+                            <p>健康檢查、效能監控、錯誤追蹤</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 11: 性能考量 -->
+        <div class="slide" data-slide="11">
+            <div class="content">
+                <h1 class="slide-title">📊 性能考量</h1>
+                <div class="architecture-diagram">
+                    <h2>效能優化策略</h2>
+                    <div class="tech-grid">
+                        <div class="tech-card">
+                            <h3>🧮 演算法優化</h3>
+                            <ul class="tech-list">
+                                <li>向量化運算 (NumPy)</li>
+                                <li>記憶體管理</li>
+                                <li>並行處理</li>
+                            </ul>
+                        </div>
+                        <div class="tech-card">
+                            <h3>🌐 API 效能</h3>
+                            <ul class="tech-list">
+                                <li>非阻塞 I/O</li>
+                                <li>快取機制</li>
+                                <li>分頁處理</li>
+                            </ul>
+                        </div>
+                        <div class="tech-card">
+                            <h3>⚛️ 前端優化</h3>
+                            <ul class="tech-list">
+                                <li>組件懶載入</li>
+                                <li>圖片優化</li>
+                                <li>狀態管理</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <h3>📈 水平擴展</h3>
+                            <p>無狀態設計、負載均衡</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>🔧 垂直擴展</h3>
+                            <p>模組化架構、插件系統</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 12: 未來擴展 -->
+        <div class="slide" data-slide="12">
+            <div class="content">
+                <h1 class="slide-title">🔮 未來擴展</h1>
+                <div class="architecture-diagram">
+                    <h2>技術升級方向</h2>
+                    <div class="tech-grid">
+                        <div class="tech-card">
+                            <h3>🧠 演算法擴展</h3>
+                            <ul class="tech-list">
+                                <li>深度強化學習 (DQN, A3C)</li>
+                                <li>多智能體系統</li>
+                                <li>連續動作空間 (DDPG, SAC)</li>
+                            </ul>
+                        </div>
+                        <div class="tech-card">
+                            <h3>🌍 環境擴展</h3>
+                            <ul class="tech-list">
+                                <li>3D 環境</li>
+                                <li>動態環境</li>
+                                <li>真實世界數據</li>
+                            </ul>
+                        </div>
+                        <div class="tech-card">
+                            <h3>☁️ 平台功能</h3>
+                            <ul class="tech-list">
+                                <li>雲端部署</li>
+                                <li>多用戶支援</li>
+                                <li>協作功能</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <h3>🎯 教育功能</h3>
+                            <p>互動式教程、能力評估、證書系統</p>
+                        </div>
+                        <div class="feature-item">
+                            <h3>🔧 開發工具</h3>
+                            <p>API 文檔、測試框架、CI/CD 流程</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 導航按鈕 -->
+        <div class="navigation">
+            <button class="nav-btn" onclick="previousSlide()">← 上一頁</button>
+            <button class="nav-btn" onclick="nextSlide()">下一頁 →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 12;
+
+        function showSlide(slideNumber) {
+            // 隱藏所有幻燈片
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // 顯示當前幻燈片
+            const currentSlideElement = document.querySelector(`[data-slide="${slideNumber}"]`);
+            if (currentSlideElement) {
+                currentSlideElement.classList.add('active');
+            }
+
+            // 更新計數器
+            document.getElementById('current-slide').textContent = slideNumber;
+            document.getElementById('total-slides').textContent = totalSlides;
+
+            // 更新進度條
+            const progress = (slideNumber / totalSlides) * 100;
+            document.querySelector('.progress-fill').style.width = progress + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function previousSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        // 鍵盤導航
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                previousSlide();
+            }
+        });
+
+        // 觸控導航
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(event) {
+            touchStartX = event.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(event) {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    previousSlide();
+                }
+            }
+        }
+
+        // 初始化
+        showSlide(1);
+
+        // 添加進度條
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.innerHTML = '<div class="progress-fill"></div>';
+        document.querySelector('.presentation-container').appendChild(progressBar);
+    </script>
+</body>
+</html> 

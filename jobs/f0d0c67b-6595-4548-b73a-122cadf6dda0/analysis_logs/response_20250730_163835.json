@@ -1,0 +1,20 @@
+{
+  "timestamp": "20250730_163835",
+  "job_id": "f0d0c67b-6595-4548-b73a-122cadf6dda0",
+  "status_code": 400,
+  "response_headers": {
+    "Vary": "Origin, X-Origin, Referer",
+    "Content-Type": "application/json; charset=UTF-8",
+    "Content-Encoding": "gzip",
+    "Date": "Wed, 30 Jul 2025 16:38:35 GMT",
+    "Server": "scaffolding on HTTPServer2",
+    "X-XSS-Protection": "0",
+    "X-Frame-Options": "SAMEORIGIN",
+    "X-Content-Type-Options": "nosniff",
+    "Server-Timing": "gfet4t7; dur=192",
+    "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+    "Transfer-Encoding": "chunked"
+  },
+  "response_text": "{\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"API key not valid. Please pass a valid API key.\",\n    \"status\": \"INVALID_ARGUMENT\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n        \"reason\": \"API_KEY_INVALID\",\n        \"domain\": \"googleapis.com\",\n        \"metadata\": {\n          \"service\": \"generativelanguage.googleapis.com\"\n        }\n      },\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.LocalizedMessage\",\n        \"locale\": \"en-US\",\n        \"message\": \"API key not valid. Please pass a valid API key.\"\n      }\n    ]\n  }\n}\n",
+  "success": false
+}

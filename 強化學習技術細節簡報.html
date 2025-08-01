@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>強化學習演算法技術實現詳解</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transform: translateX(100%);
+            transition: transform 0.5s ease-in-out;
+            opacity: 0;
+        }
+
+        .slide.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .slide-title {
+            font-size: 3rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-subtitle {
+            font-size: 1.3rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .content {
+            max-width: 1400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .code-section {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: left;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .code-highlight {
+            color: #569cd6;
+        }
+
+        .code-string {
+            color: #ce9178;
+        }
+
+        .code-comment {
+            color: #6a9955;
+        }
+
+        .code-number {
+            color: #b5cea8;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .tech-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tech-card h3 {
+            color: #1e3c72;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .module-list {
+            list-style: none;
+            text-align: left;
+        }
+
+        .module-list li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .module-list li:last-child {
+            border-bottom: none;
+        }
+
+        .module-purpose {
+            background: #1e3c72;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .algorithm-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .algorithm-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .algorithm-card h3 {
+            color: #1e3c72;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            border-left: 4px solid #1e3c72;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .nav-btn:hover {
+            background: #1e3c72;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .implementation-detail {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            border-left: 4px solid #1e3c72;
+        }
+
+        .implementation-detail h4 {
+            color: #1e3c72;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 20px;
+            }
+            
+            .slide-title {
+                font-size: 2rem;
+            }
+            
+            .algorithm-comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- 幻燈片計數器 -->
+        <div class="slide-counter">
+            <span id="current-slide">1</span> / <span id="total-slides">10</span>
+        </div>
+
+        <!-- 幻燈片 1: 標題頁 -->
+        <div class="slide active" data-slide="1">
+            <div class="content">
+                <h1 class="slide-title">🧠 強化學習演算法技術實現</h1>
+                <p class="slide-subtitle">Q-Learning 與 SARSA 核心實作詳解</p>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3>🎯 技術重點</h3>
+                        <ul class="module-list">
+                            <li>核心演算法實作 <span class="module-purpose">Q-Learning</span></li>
+                            <li>同策略學習 <span class="module-purpose">SARSA</span></li>
+                            <li>探索策略 <span class="module-purpose">ε-greedy</span></li>
+                            <li>狀態管理 <span class="module-purpose">Grid World</span></li>
+                        </ul>
+                    </div>
+                    <div class="tech-card">
+                        <h3>🔧 核心模組</h3>
+                        <ul class="module-list">
+                            <li>NumPy <span class="module-purpose">數值計算</span></li>
+                            <li>Pandas <span class="module-purpose">資料處理</span></li>
+                            <li>JSON <span class="module-purpose">配置管理</span></li>
+                            <li>Matplotlib <span class="module-purpose">視覺化</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 2: 核心模組與依賴 -->
+        <div class="slide" data-slide="2">
+            <div class="content">
+                <h1 class="slide-title">🔧 核心模組與依賴</h1>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3>📦 主要依賴套件</h3>
+                        <div class="code-section">
+<span class="code-comment"># 核心數值計算與科學計算</span>
+<span class="code-highlight">import</span> <span class="code-string">numpy</span> <span class="code-highlight">as</span> np
+<span class="code-highlight">import</span> <span class="code-string">pandas</span> <span class="code-highlight">as</span> pd
+
+<span class="code-comment"># 檔案處理與配置</span>
+<span class="code-highlight">import</span> <span class="code-string">json</span>
+<span class="code-highlight">import</span> <span class="code-string">os</span>
+<span class="code-highlight">import</span> <span class="code-string">argparse</span>
+<span class="code-highlight">import</span> <span class="code-string">copy</span>
+
+<span class="code-comment"># 視覺化與分析</span>
+<span class="code-highlight">import</span> <span class="code-string">matplotlib.pyplot</span> <span class="code-highlight">as</span> plt</div>
+                    </div>
+                    <div class="tech-card">
+                        <h3>🎯 各模組功能說明</h3>
+                        <ul class="module-list">
+                            <li><strong>NumPy</strong> <span class="module-purpose">Q-Table 運算</span></li>
+                            <li><strong>Pandas</strong> <span class="module-purpose">訓練記錄輸出</span></li>
+                            <li><strong>JSON</strong> <span class="module-purpose">地圖與規則載入</span></li>
+                            <li><strong>Copy</strong> <span class="module-purpose">地圖狀態複製</span></li>
+                            <li><strong>Argparse</strong> <span class="module-purpose">命令列參數</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 3: 環境設定與常數 -->
+        <div class="slide" data-slide="3">
+            <div class="content">
+                <h1 class="slide-title">⚙️ 環境設定與常數定義</h1>
+                <div class="code-section">
+<span class="code-comment"># 演算法參數設定</span>
+<span class="code-highlight">EPISODES</span> = <span class="code-number">500</span>                    <span class="code-comment"># 訓練回合數</span>
+<span class="code-highlight">MAX_STEPS</span> = <span class="code-number">100</span>                    <span class="code-comment"># 每回合最大步數</span>
+<span class="code-highlight">LEARNING_RATE</span> = <span class="code-number">0.1</span>                <span class="code-comment"># 學習率 α</span>
+<span class="code-highlight">DISCOUNT_FACTOR</span> = <span class="code-number">0.95</span>            <span class="code-comment"># 折扣因子 γ</span>
+<span class="code-highlight">EPSILON_START</span> = <span class="code-number">1.0</span>                <span class="code-comment"># 初始探索率</span>
+<span class="code-highlight">EPSILON_END</span> = <span class="code-number">0.01</span>                  <span class="code-comment"># 最終探索率</span>
+<span class="code-highlight">EPSILON_DECAY</span> = <span class="code-number">0.995</span>              <span class="code-comment"># 探索率衰減因子</span>
+
+<span class="code-comment"># 動作空間定義</span>
+<span class="code-highlight">ACTIONS</span> = [<span class="code-string">'up'</span>, <span class="code-string">'down'</span>, <span class="code-string">'left'</span>, <span class="code-string">'right'</span>]
+
+<span class="code-comment"># 地圖元素標記</span>
+<span class="code-highlight">START</span> = <span class="code-string">'S'</span>      <span class="code-comment"># 起點</span>
+<span class="code-highlight">GOAL</span> = <span class="code-string">'G'</span>        <span class="code-comment"># 目標</span>
+<span class="code-highlight">REWARD</span> = <span class="code-string">'R'</span>      <span class="code-comment"># 獎勵格</span>
+<span class="code-highlight">TRAP</span> = <span class="code-string">'T'</span>        <span class="code-comment"># 陷阱</span>
+<span class="code-highlight">OBSTACLE</span> = <span class="code-string">'1'</span>    <span class="code-comment"># 障礙物</span>
+<span class="code-highlight">EMPTY</span> = <span class="code-string">'0'</span>       <span class="code-comment"># 空格</span></div>
+                <div class="implementation-detail">
+                    <h4>🔍 關鍵設計考量</h4>
+                    <p><strong>探索率衰減</strong>：使用指數衰減確保訓練初期充分探索，後期趨向利用</p>
+                    <p><strong>狀態編碼</strong>：位置座標轉換為字串格式，便於 Q-Table 索引</p>
+                    <p><strong>動作驗證</strong>：確保智能體不會執行無效動作</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 4: Q-Learning 核心公式 -->
+        <div class="slide" data-slide="4">
+            <div class="content">
+                <h1 class="slide-title">🧮 Q-Learning 核心公式</h1>
+                <div class="algorithm-card">
+                    <h3>Q-Learning 更新公式</h3>
+                    <div class="formula">
+                        Q(s,a) ← Q(s,a) + α[r + γ·max(Q(s',a')) - Q(s,a)]
+                    </div>
+                    <div class="implementation-detail">
+                        <h4>📝 公式解析</h4>
+                        <ul>
+                            <li><strong>Q(s,a)</strong>：當前狀態-動作對的 Q 值</li>
+                            <li><strong>α</strong>：學習率，控制更新步長</li>
+                            <li><strong>r</strong>：即時獎勵</li>
+                            <li><strong>γ</strong>：折扣因子，平衡即時與未來獎勵</li>
+                            <li><strong>max(Q(s',a'))</strong>：下一狀態的最大 Q 值</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="code-section">
+<span class="code-comment"># Q-Learning 核心更新函數</span>
+<span class="code-highlight">def</span> <span class="code-string">q_learning_update</span>(q_table, state, action, reward, next_state, learning_rate, discount_factor):
+    <span class="code-comment">"""Q-Learning 更新函數"""</span>
+    current_q = q_table.get((state, action), <span class="code-number">0.0</span>)
+    max_next_q = max([q_table.get((next_state, a), <span class="code-number">0.0</span>) <span class="code-highlight">for</span> a <span class="code-highlight">in</span> ACTIONS])
+    new_q = current_q + learning_rate * (reward + discount_factor * max_next_q - current_q)
+    <span class="code-highlight">return</span> new_q</div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 5: Q-Learning 實現細節 -->
+        <div class="slide" data-slide="5">
+            <div class="content">
+                <h1 class="slide-title">🔧 Q-Learning 實現細節</h1>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3>🎯 核心實現步驟</h3>
+                        <div class="code-section">
+<span class="code-comment"># 1. 初始化 Q-Table</span>
+q_table = {}
+<span class="code-highlight">for</span> i <span class="code-highlight">in</span> range(rows):
+    <span class="code-highlight">for</span> j <span class="code-highlight">in</span> range(cols):
+        <span class="code-highlight">if</span> map_grid[i][j] != OBSTACLE:
+            <span class="code-highlight">for</span> action <span class="code-highlight">in</span> get_valid_actions(map_grid, (i, j)):
+                q_table[(i, j, action)] = initial_value
+
+<span class="code-comment"># 2. ε-greedy 策略</span>
+<span class="code-highlight">if</span> np.random.rand() < current_epsilon:
+    action = np.random.choice(valid_actions)  <span class="code-comment"># 探索</span>
+<span class="code-highlight">else</span>:
+    q_vals = [q_table.get((state[0], state[1], a), -np.inf) <span class="code-highlight">for</span> a <span class="code-highlight">in</span> valid_actions]
+    max_q = np.max(q_vals)
+    best_actions = [a <span class="code-highlight">for</span> a, q <span class="code-highlight">in</span> zip(valid_actions, q_vals) <span class="code-highlight">if</span> q == max_q]
+    action = np.random.choice(best_actions)  <span class="code-comment"># 利用</span></div>
+                    </div>
+                    <div class="tech-card">
+                        <h3>🔄 更新機制</h3>
+                        <div class="code-section">
+<span class="code-comment"># 3. Q-Learning 更新</span>
+next_valid_actions = get_valid_actions(current_map, next_pos)
+next_qs = [q_table.get((next_pos[0], next_pos[1], a), <span class="code-number">0.0</span>) <span class="code-highlight">for</span> a <span class="code-highlight">in</span> next_valid_actions]
+max_next_q = max(next_qs) <span class="code-highlight">if</span> next_qs <span class="code-highlight">else</span> <span class="code-number">0.0</span>
+
+<span class="code-comment"># 核心更新公式</span>
+q_key = (state[0], state[1], action)
+q_table[q_key] = q_table.get(q_key, <span class="code-number">0.0</span>) + learning_rate * (
+    reward + discount_factor * max_next_q - q_table.get(q_key, <span class="code-number">0.0</span>)
+)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 6: SARSA 核心公式 -->
+        <div class="slide" data-slide="6">
+            <div class="content">
+                <h1 class="slide-title">🔄 SARSA 核心公式</h1>
+                <div class="algorithm-card">
+                    <h3>SARSA 更新公式</h3>
+                    <div class="formula">
+                        Q(s,a) ← Q(s,a) + α[r + γ·Q(s',a') - Q(s,a)]
+                    </div>
+                    <div class="implementation-detail">
+                        <h4>📝 與 Q-Learning 的差異</h4>
+                        <ul>
+                            <li><strong>同策略學習</strong>：學習當前執行的策略</li>
+                            <li><strong>實際動作</strong>：使用實際執行的下一動作 Q(s',a')</li>
+                            <li><strong>保守特性</strong>：在危險環境中表現更穩定</li>
+                            <li><strong>SARSA(λ)</strong>：支援資格跡機制</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="code-section">
+<span class="code-comment"># SARSA 核心更新函數</span>
+<span class="code-highlight">def</span> <span class="code-string">sarsa_update</span>(q_table, state, action, reward, next_state, next_action, learning_rate, discount_factor):
+    <span class="code-comment">"""SARSA 更新函數"""</span>
+    current_q = q_table.get((state, action), <span class="code-number">0.0</span>)
+    next_q = q_table.get((next_state, next_action), <span class="code-number">0.0</span>)
+    new_q = current_q + learning_rate * (reward + discount_factor * next_q - current_q)
+    <span class="code-highlight">return</span> new_q</div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 7: SARSA 實現細節 -->
+        <div class="slide" data-slide="7">
+            <div class="content">
+                <h1 class="slide-title">🔧 SARSA 實現細節</h1>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3>🎯 SARSA 核心步驟</h3>
+                        <div class="code-section">
+<span class="code-comment"># 1. 選擇初始動作</span>
+valid_actions = get_valid_actions(current_map, state)
+<span class="code-highlight">if</span> np.random.rand() < current_epsilon:
+    action = np.random.choice(valid_actions)
+<span class="code-highlight">else</span>:
+    q_vals = [q_table.get((state[0], state[1], a), -np.inf) <span class="code-highlight">for</span> a <span class="code-highlight">in</span> valid_actions]
+    max_q = np.max(q_vals)
+    best_actions = [a <span class="code-highlight">for</span> a, q <span class="code-highlight">in</span> zip(valid_actions, q_vals) <span class="code-highlight">if</span> q == max_q]
+    action = np.random.choice(best_actions)
+
+<span class="code-comment"># 2. 選擇下一動作（SARSA 特性）</span>
+next_valid_actions = get_valid_actions(current_map, next_pos)
+<span class="code-highlight">if</span> next_valid_actions:
+    <span class="code-highlight">if</span> np.random.rand() < current_epsilon:
+        next_action = np.random.choice(next_valid_actions)
+    <span class="code-highlight">else</span>:
+        next_q_vals = [q_table.get((next_pos[0], next_pos[1], a), -np.inf) <span class="code-highlight">for</span> a <span class="code-highlight">in</span> next_valid_actions]
+        max_next_q = np.max(next_q_vals)
+        best_next_actions = [a <span class="code-highlight">for</span> a, q <span class="code-highlight">in</span> zip(next_valid_actions, next_q_vals) <span class="code-highlight">if</span> q == max_next_q]
+        next_action = np.random.choice(best_next_actions)
+    next_q = q_table.get((next_pos[0], next_pos[1], next_action), <span class="code-number">0.0</span>)
+<span class="code-highlight">else</span>:
+    next_action = None
+    next_q = <span class="code-number">0.0</span></div>
+                    </div>
+                    <div class="tech-card">
+                        <h3>🔄 SARSA(λ) 資格跡</h3>
+                        <div class="code-section">
+<span class="code-comment"># 3. SARSA(λ) 資格跡更新</span>
+eligibility_traces = {}
+
+<span class="code-comment"># 更新當前狀態-動作對的資格跡</span>
+q_key = (state[0], state[1], action)
+eligibility_traces[q_key] = eligibility_traces.get(q_key, <span class="code-number">0.0</span>) + <span class="code-number">1.0</span>
+
+<span class="code-comment"># 更新所有狀態-動作對的 Q 值和資格跡</span>
+<span class="code-highlight">for</span> (s_i, s_j, a), trace <span class="code-highlight">in</span> eligibility_traces.items():
+    <span class="code-highlight">if</span> trace > <span class="code-number">0</span>:
+        q_table[(s_i, s_j, a)] = q_table.get((s_i, s_j, a), <span class="code-number">0.0</span>) + learning_rate * td_error * trace
+        <span class="code-comment"># 衰減資格跡</span>
+        eligibility_traces[(s_i, s_j, a)] = lambda_value * discount_factor * trace</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 8: 探索策略實現 -->
+        <div class="slide" data-slide="8">
+            <div class="content">
+                <h1 class="slide-title">🎯 探索策略實現</h1>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3>ε-greedy 策略</h3>
+                        <div class="code-section">
+<span class="code-comment"># 探索率計算（指數衰減）</span>
+<span class="code-highlight">def</span> <span class="code-string">get_epsilon</span>(episode, total_episodes):
+    <span class="code-comment">"""計算當前探索率（指數衰減）"""</span>
+    <span class="code-highlight">if</span> EPSILON_DECAY == <span class="code-number">1.0</span>:
+        <span class="code-highlight">return</span> EPSILON_START
+    
+    <span class="code-comment"># 指數衰減</span>
+    decay_rate = (EPSILON_END / EPSILON_START) ** (<span class="code-number">1</span> / total_episodes)
+    epsilon = EPSILON_START * (decay_rate ** episode)
+    <span class="code-highlight">return</span> max(epsilon, EPSILON_END)
+
+<span class="code-comment"># 動作選擇</span>
+current_epsilon = get_epsilon(episode, episodes)
+<span class="code-highlight">if</span> np.random.rand() < current_epsilon:
+    action = np.random.choice(valid_actions)  <span class="code-comment"># 探索</span>
+<span class="code-highlight">else</span>:
+    <span class="code-comment"># 利用最佳動作</span>
+    q_vals = [q_table.get((state[0], state[1], a), -np.inf) <span class="code-highlight">for</span> a <span class="code-highlight">in</span> valid_actions]
+    max_q = np.max(q_vals)
+    best_actions = [a <span class="code-highlight">for</span> a, q <span class="code-highlight">in</span> zip(valid_actions, q_vals) <span class="code-highlight">if</span> q == max_q]
+    action = np.random.choice(best_actions)</div>
+                    </div>
+                    <div class="tech-card">
+                        <h3>🎛️ 探索策略特性</h3>
+                        <ul class="module-list">
+                            <li><strong>指數衰減</strong> <span class="module-purpose">平滑過渡</span></li>
+                            <li><strong>探索 vs 利用</strong> <span class="module-purpose">平衡學習</span></li>
+                            <li><strong>隨機選擇</strong> <span class="module-purpose">避免局部最優</span></li>
+                            <li><strong>最佳動作</strong> <span class="module-purpose">利用已知知識</span></li>
+                        </ul>
+                        <div class="implementation-detail">
+                            <h4>📊 探索率變化</h4>
+                            <p>從 1.0（完全探索）→ 0.01（主要利用）</p>
+                            <p>確保訓練初期充分探索環境，後期趨向最優策略</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 9: 資料處理與輸出 -->
+        <div class="slide" data-slide="9">
+            <div class="content">
+                <h1 class="slide-title">📊 資料處理與輸出</h1>
+                <div class="tech-grid">
+                    <div class="tech-card">
+                        <h3>💾 訓練記錄</h3>
+                        <div class="code-section">
+<span class="code-comment"># 記錄每步的訓練資料</span>
+log_records.append({
+    <span class="code-string">'episode'</span>: episode,
+    <span class="code-string">'step'</span>: step,
+    <span class="code-string">'state'</span>: state_to_str(state),
+    <span class="code-string">'action'</span>: action,
+    <span class="code-string">'reward'</span>: reward,
+    <span class="code-string">'next_state'</span>: state_to_str(next_pos),
+    <span class="code-string">'done'</span>: is_terminal(cell),
+    <span class="code-string">'epsilon'</span>: current_epsilon,
+    <span class="code-string">'success'</span>: cell == GOAL
+})
+
+<span class="code-comment"># 輸出 Q-Table</span>
+qtable_rows = []
+<span class="code-highlight">for</span> (i, j, action), value <span class="code-highlight">in</span> q_table.items():
+    qtable_rows.append({
+        <span class="code-string">'state'</span>: state_to_str((i, j)), 
+        <span class="code-string">'action'</span>: action, 
+        <span class="code-string">'value'</span>: value
+    })</div>
+                    </div>
+                    <div class="tech-card">
+                        <h3>📁 檔案輸出</h3>
+                        <div class="code-section">
+<span class="code-comment"># 使用 Pandas 輸出 CSV</span>
+qtable_output = os.path.join(output_dir, <span class="code-string">'q_table.csv'</span>)
+log_output = os.path.join(output_dir, <span class="code-string">'log.csv'</span>)
+
+pd.DataFrame(qtable_rows).to_csv(qtable_output, index=False)
+pd.DataFrame(log_records).to_csv(log_output, index=False)
+
+<span class="code-comment"># 訓練統計</span>
+final_avg_reward = np.mean(episode_rewards[-100:]) <span class="code-highlight">if</span> len(episode_rewards) >= <span class="code-number">100</span> <span class="code-highlight">else</span> np.mean(episode_rewards)
+print(f<span class="code-string">"最終 100 回合平均獎勵: {final_avg_reward:.2f}"</span>)</div>
+                    </div>
+                </div>
+                <div class="implementation-detail">
+                    <h4>🔍 資料結構設計</h4>
+                    <p><strong>Q-Table</strong>：使用字典結構 (state, action) → value，便於快速查詢</p>
+                    <p><strong>訓練記錄</strong>：詳細記錄每步的狀態、動作、獎勵，用於後續分析</p>
+                    <p><strong>CSV 輸出</strong>：使用 Pandas 確保資料格式標準化，便於其他工具分析</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 幻燈片 10: 演算法比較總結 -->
+        <div class="slide" data-slide="10">
+            <div class="content">
+                <h1 class="slide-title">📋 演算法比較總結</h1>
+                <div class="algorithm-comparison">
+                    <div class="algorithm-card">
+                        <h3>🧮 Q-Learning</h3>
+                        <div class="formula">
+                            Q(s,a) ← Q(s,a) + α[r + γ·max(Q(s',a')) - Q(s,a)]
+                        </div>
+                        <ul class="module-list">
+                            <li><strong>學習類型</strong> <span class="module-purpose">離策略</span></li>
+                            <li><strong>更新目標</strong> <span class="module-purpose">最優動作</span></li>
+                            <li><strong>收斂速度</strong> <span class="module-purpose">較快</span></li>
+                            <li><strong>適用場景</strong> <span class="module-purpose">追求最優</span></li>
+                        </ul>
+                    </div>
+                    <div class="algorithm-card">
+                        <h3>🔄 SARSA</h3>
+                        <div class="formula">
+                            Q(s,a) ← Q(s,a) + α[r + γ·Q(s',a') - Q(s,a)]
+                        </div>
+                        <ul class="module-list">
+                            <li><strong>學習類型</strong> <span class="module-purpose">同策略</span></li>
+                            <li><strong>更新目標</strong> <span class="module-purpose">實際動作</span></li>
+                            <li><strong>收斂速度</strong> <span class="module-purpose">較慢</span></li>
+                            <li><strong>適用場景</strong> <span class="module-purpose">保守穩定</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="implementation-detail">
+                    <h4>🎯 技術實現要點</h4>
+                    <p><strong>模組化設計</strong>：核心函數獨立，便於維護和擴展</p>
+                    <p><strong>參數化配置</strong>：所有超參數可調整，支援實驗對比</p>
+                    <p><strong>完整記錄</strong>：詳細的訓練過程記錄，便於分析和調優</p>
+                    <p><strong>可重現性</strong>：隨機種子設定，確保實驗結果可重現</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 導航按鈕 -->
+        <div class="navigation">
+            <button class="nav-btn" onclick="previousSlide()">← 上一頁</button>
+            <button class="nav-btn" onclick="nextSlide()">下一頁 →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 10;
+
+        function showSlide(slideNumber) {
+            // 隱藏所有幻燈片
+            document.querySelectorAll('.slide').forEach(slide => {
+                slide.classList.remove('active');
+            });
+
+            // 顯示當前幻燈片
+            const currentSlideElement = document.querySelector(`[data-slide="${slideNumber}"]`);
+            if (currentSlideElement) {
+                currentSlideElement.classList.add('active');
+            }
+
+            // 更新計數器
+            document.getElementById('current-slide').textContent = slideNumber;
+            document.getElementById('total-slides').textContent = totalSlides;
+
+            // 更新進度條
+            const progress = (slideNumber / totalSlides) * 100;
+            document.querySelector('.progress-fill').style.width = progress + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function previousSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        // 鍵盤導航
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                previousSlide();
+            }
+        });
+
+        // 觸控導航
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(event) {
+            touchStartX = event.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(event) {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    previousSlide();
+                }
+            }
+        }
+
+        // 初始化
+        showSlide(1);
+
+        // 添加進度條
+        const progressBar = document.createElement('div');
+        progressBar.className = 'progress-bar';
+        progressBar.innerHTML = '<div class="progress-fill"></div>';
+        document.querySelector('.presentation-container').appendChild(progressBar);
+    </script>
+</body>
+</html> 
